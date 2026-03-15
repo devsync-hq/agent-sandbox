@@ -1,0 +1,26 @@
+{
+  "sandbox": {
+    "enabled": true,
+    "allowManagedDomainsOnly": true,
+    "allowUnsandboxedCommands": false,
+    "filesystem": {
+      "allowWrite": ["./"],
+      "denyRead": [
+        "~/.ssh",
+        "~/.gnupg",
+        "~/.aws",
+        "~/.azure",
+        "~/.gcloud",
+        "~/.kube",
+        "~/.docker",
+        "~/.config",
+        "~/.netrc",
+        "~/.npmrc",
+        "~/.pypirc",
+        "//etc/shadow",
+        "//etc/sudoers",
+        "//root"
+      ]
+    }
+  }
+}
