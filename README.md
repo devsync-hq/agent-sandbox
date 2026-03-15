@@ -1,14 +1,15 @@
 # Agent Sandbox
 
-A lightweight OS-level sandbox launcher for AI coding agents. Claude Code is the first supported agent.
+A lightweight OS-level sandbox launcher for AI coding agents. Supports Claude Code and Gemini CLI; select the agent with the `AGENT` env var.
 
 Runs the agent with filesystem and network isolation using the agent's built-in bubblewrap (Linux/WSL2) or Seatbelt (macOS) sandbox. No Docker required.
 
 ## Supported Agents
 
-| Agent | CLI | Prerequisites (Linux/WSL2) |
-|-------|-----|---------------------------|
-| [Claude Code](https://claude.ai/code) | `claude` | `sudo apt-get install bubblewrap socat` |
+| Agent | CLI | `AGENT` value | Launch flag | Prerequisites (Linux/WSL2) |
+|-------|-----|---------------|-------------|---------------------------|
+| [Claude Code](https://claude.ai/code) | `claude` | `claude` (default) | `--dangerously-skip-permissions` | `sudo apt-get install bubblewrap socat` |
+| [Gemini CLI](https://github.com/google-gemini/gemini-cli) | `gemini` | `gemini` | `--yolo` | `sudo apt-get install bubblewrap socat` |
 
 ## Architecture
 
@@ -33,14 +34,20 @@ sudo apt-get install bubblewrap socat
 ## Usage
 
 ```bash
-# Run in the current directory
+# Claude Code (default) — current directory
 ./run.sh
 
-# Run in a specific workspace
+# Claude Code — specific workspace
 ./run.sh /path/to/workspace
+
+# Gemini CLI — current directory
+AGENT=gemini ./run.sh
+
+# Gemini CLI — specific workspace
+AGENT=gemini ./run.sh /path/to/workspace
 ```
 
-`run.sh` injects the sandbox config into `.claude/settings.local.json` in your workspace for the duration of the session. The file is restored (or removed) automatically when the session exits.
+For Claude, `run.sh` injects the sandbox config into `.claude/settings.local.json` in your workspace for the duration of the session; the file is restored (or removed) automatically on exit. For Gemini, no settings file is managed — the Gemini CLI handles its own sandbox configuration.
 
 ## What IS sandboxed
 
@@ -73,12 +80,10 @@ A proxy runs outside the sandbox and intercepts all outbound traffic from every 
 
 ## How it works
 
-1. `run.sh` resolves the workspace path.
+1. `run.sh` resolves the workspace path and reads `AGENT` (default: `claude`).
 2. On Linux, verifies `bwrap` is installed — exits with install instructions if not.
-3. Backs up (or notes absence of) `.claude/settings.local.json` in the workspace.
-4. Merges the `sandbox` key from `sandbox-settings.json` into `.claude/settings.local.json` (preserving any other keys you have set). Creates the file if absent.
-5. Registers an `EXIT` trap to restore the file to its original state.
-6. Launches `claude --dangerously-skip-permissions` in the workspace.
+3. **Claude only:** backs up (or notes absence of) `.claude/settings.local.json`; merges the `sandbox` key from `sandbox-settings.json` into it; registers an `EXIT` trap to restore the file.
+4. Launches the agent: `claude --dangerously-skip-permissions` or `gemini --yolo`.
 
 ## Making sandbox settings permanent
 
